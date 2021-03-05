@@ -1,0 +1,44 @@
+version: "3.3"
+services:
+
+  postgres:
+    image: postgres
+    ports: 
+      - "5433:5432"
+    environment: 
+      POSTGRES_PASSWORD: postgres
+    networks:
+      - mynetwork
+
+  exporter:
+    depends_on: 
+      - "postgres"
+    image: wrouesnel/postgres_exporter
+    ports:
+      - "9188:9187"
+    environment: 
+      DATA_SOURCE_NAME: "postgresql://postgres:postgres@postgres:5432/postgres?sslmode=disable"
+    networks:
+      - mynetwork
+
+  grafana:
+    depends_on: 
+      - prometheus
+    image: grafana/grafana
+    ports: 
+      - "3001:3000"
+    networks:
+      - mynetwork
+
+  prometheus:
+    depends_on: 
+      - exporter
+    image: prom/prometheus
+    ports:
+      - "9091:9090"
+    volumes: 
+      - /home/arefall/postgress-grafana-prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - mynetwork
+networks: 
+  mynetwork:
